@@ -14,7 +14,7 @@ import ErrorState from '../components/ErrorState.vue'
 import ListSkeleton from '../components/ListSkeleton.vue'
 import RefreshButton from '../components/RefreshButton.vue'
 import type { DeviceMgmtListItem, SMSMessage } from '../types/api'
-import { ArrowSync24Regular, Delete24Regular, Mail24Regular, Send24Regular } from '@vicons/fluent'
+import { ArrowSync24Regular, Call24Regular, Delete24Regular, Mail24Regular, Send24Regular } from '@vicons/fluent'
 import { RecycleScroller } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
@@ -140,6 +140,7 @@ const showDetailPane = computed(() => !isNarrowLayout.value || !!selectedThreadK
 const showSendModal = ref(false)
 const sending = ref(false)
 const refreshingIMS = ref(false)
+const simulatingCall = ref(false)
 const deletingMessageId = ref<number | null>(null)
 const deletingThreadKey = ref<string | null>(null)
 const supportsHover = ref(false)
@@ -197,6 +198,16 @@ const imsRefreshDeviceId = computed(() => {
   if (selectedDevice.value && selectedDevice.value !== 'all') return selectedDevice.value
   if (selectedThread.value?.deviceId) return selectedThread.value.deviceId
   return devices.value[0]?.id || ''
+})
+
+const vocallDeviceId = computed(() => {
+  if (selectedDevice.value && selectedDevice.value !== 'all') return selectedDevice.value
+  if (selectedThread.value?.deviceId) return selectedThread.value.deviceId
+  return devices.value[0]?.id || ''
+})
+
+const canSimulateCall888 = computed(() => {
+  return selectedThread.value?.peer === '888' && !!vocallDeviceId.value
 })
 
 const deviceSidebarItems = computed(() => {
@@ -566,6 +577,41 @@ async function refreshIMS() {
   }
 }
 
+async function simulateCall888() {
+  if (!canSimulateCall888.value) return
+  const deviceId = vocallDeviceId.value
+  try {
+    await ElMessageBox.confirm(
+      '将通过 VoWiFi 模拟外呼拨打 888，并保持约 15 秒。仅用于 CTE/CTExcel 888 菜单测试。',
+      '拨打 888',
+      {
+        confirmButtonText: '拨打',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+  } catch {
+    return
+  }
+
+  simulatingCall.value = true
+  try {
+    const result = await devicesService.simulateVoWiFiCall(deviceId, '888', 15)
+    if (!result.ok) throw new Error(result.error.message || '拨号失败')
+    if (result.data?.success) {
+      const seconds = Math.max(1, Math.round((result.data.duration_ms || 0) / 1000))
+      ElMessage.success(`888 通话完成，时长约 ${seconds} 秒`)
+    } else {
+      ElMessage.warning('888 未接通：' + (result.data?.reason || '未知原因'))
+    }
+  } catch (e: unknown) {
+    const err = toAppError(e)
+    ElMessage.error('拨号失败：' + (err.message || '未知错误'))
+  } finally {
+    simulatingCall.value = false
+  }
+}
+
 async function pollRefresh() {
   if (loading.value || threadLoading.value || loadingHistoryMore.value) return
   try {
@@ -924,7 +970,10 @@ async function confirmDeleteThread(thread: SmsThread) {
               </div>
             </div>
             <div v-if="selectedThread" class="flex items-center gap-2">
-
+              <el-button v-if="canSimulateCall888" :loading="simulatingCall" type="primary" plain @click="simulateCall888">
+                <el-icon><Call24Regular /></el-icon>
+                拨 888
+              </el-button>
               <el-button text @click="scrollThreadToBottom">最新</el-button>
             </div>
           </div>

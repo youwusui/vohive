@@ -52,6 +52,15 @@ type UssdResponse = {
   channel?: string
 }
 
+type SimulateVoWiFiCallResponse = {
+  success?: boolean
+  status?: string
+  callee?: string
+  hold_seconds?: number
+  duration_ms?: number
+  reason?: string
+}
+
 const ESIM_BUSY_CODE = 'ESIM_BUSY'
 const ESIM_BUSY_RETRY_DELAYS = [300, 600, 1200]
 
@@ -190,6 +199,15 @@ export const devicesService = {
     return callService(async () => {
       await api.post(`/devices/${id}/vowifi/actions/reconnect`)
       return true
+    })
+  },
+  simulateVoWiFiCall(id: string, callee = '888', holdSeconds = 15) {
+    return callService(async () => {
+      const res = await api.post<SimulateVoWiFiCallResponse>(`/devices/${id}/vowifi/actions/vocall`, {
+        callee,
+        hold_seconds: holdSeconds
+      })
+      return res.data
     })
   },
   startE911Websheet(id: string) {

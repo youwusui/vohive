@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -22,6 +23,7 @@ import (
 	proxytraffic "github.com/iniwex5/vohive/internal/proxy/traffic"
 	"github.com/iniwex5/vohive/pkg/logger"
 	"github.com/iniwex5/vowifi-go/runtimehost"
+	"github.com/iniwex5/vowifi-go/runtimehost/voicehost"
 
 	"github.com/gin-gonic/gin"
 )
@@ -2518,6 +2520,84 @@ func (s *Server) handleDeviceMgmtReconnectVoWiFi(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "ok", "message": "已触发 VoWiFi 重连"})
+}
+
+type simulateVoWiFiCallRequest struct {
+	Callee      string `json:"callee"`
+	HoldSeconds int    `json:"hold_seconds"`
+}
+
+func (s *Server) handleDeviceMgmtSimulateVoWiFiCall(c *gin.Context) {
+	id := deviceIDParam(c)
+
+	var req simulateVoWiFiCallRequest
+	if err := c.ShouldBindJSON(&req); err != nil && !errors.Is(err, io.EOF) {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "请求体格式错误"})
+		return
+	}
+
+	callee := strings.TrimSpace(req.Callee)
+	if callee == "" {
+		callee = "888"
+	}
+	if callee != "888" {
+		c.JSON(http.StatusForbidden, gin.H{
+			"status":  "error",
+			"message": "当前网页模拟外呼仅允许拨打 888",
+		})
+		return
+	}
+
+	worker := s.pool.GetWorker(id)
+	if worker == nil {
+		c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": "设备未找到"})
+		return
+	}
+	if !worker.Config.VoWiFiEnabled {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "设备未开启 VoWiFi，无法发起模拟外呼"})
+		return
+	}
+
+	if s.voiceGW == nil || s.voiceGW.GetAgent(id) == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"status": "error", "message": "VoWiFi 语音代理未就绪"})
+		return
+	}
+
+	holdSeconds := req.HoldSeconds
+	if holdSeconds <= 0 {
+		holdSeconds = voicehost.DefaultSimulateCallHoldSeconds
+	}
+	if holdSeconds > voicehost.MaxSimulateCallHoldSeconds {
+		holdSeconds = voicehost.MaxSimulateCallHoldSeconds
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), time.Duration(holdSeconds+45)*time.Second)
+	defer cancel()
+
+	res, err := s.voiceGW.SimulateCall(ctx, id, voicehost.SimulateCallRequest{
+		Callee:      callee,
+		HoldSeconds: holdSeconds,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"message": "VoWiFi 模拟外呼失败: " + err.Error(),
+		})
+		return
+	}
+
+	status := "not_connected"
+	if res.Success {
+		status = "ok"
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":       status,
+		"success":      res.Success,
+		"callee":       callee,
+		"hold_seconds": holdSeconds,
+		"duration_ms":  res.DurationMs,
+		"reason":       res.Reason,
+	})
 }
 
 // handleDeviceMgmtOverviewStreamSingle 给前端管理的概览信息提供带有动态刷新的 SSE 推流（仅针对选中的单个设备）
