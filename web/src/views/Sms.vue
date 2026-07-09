@@ -6,6 +6,7 @@ import { Loading } from '@element-plus/icons-vue'
 import { useSMSStore } from '../stores/sms'
 import { usePollingScheduler } from '../composables/usePollingScheduler'
 import { toAppError } from '../services/http'
+import { devicesService } from '../services/devices'
 import type { SmsThreadQueryParams } from '../services/sms'
 import PageHeader from '../components/PageHeader.vue'
 import EmptyState from '../components/EmptyState.vue'
@@ -13,7 +14,7 @@ import ErrorState from '../components/ErrorState.vue'
 import ListSkeleton from '../components/ListSkeleton.vue'
 import RefreshButton from '../components/RefreshButton.vue'
 import type { DeviceMgmtListItem, SMSMessage } from '../types/api'
-import { Delete24Regular, Mail24Regular, Send24Regular } from '@vicons/fluent'
+import { ArrowSync24Regular, Delete24Regular, Mail24Regular, Send24Regular } from '@vicons/fluent'
 import { RecycleScroller } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
@@ -138,6 +139,7 @@ const showDetailPane = computed(() => !isNarrowLayout.value || !!selectedThreadK
 
 const showSendModal = ref(false)
 const sending = ref(false)
+const refreshingIMS = ref(false)
 const deletingMessageId = ref<number | null>(null)
 const deletingThreadKey = ref<string | null>(null)
 const supportsHover = ref(false)
@@ -190,6 +192,12 @@ const sendEstimate = computed(() => estimateSegments(String(sendForm.value.messa
 
 const selectedSendDeviceId = ref('')
 const sendDeviceOptions = computed(() => devices.value.map(d => ({ label: `${d.name || d.id}`, value: d.id })))
+
+const imsRefreshDeviceId = computed(() => {
+  if (selectedDevice.value && selectedDevice.value !== 'all') return selectedDevice.value
+  if (selectedThread.value?.deviceId) return selectedThread.value.deviceId
+  return devices.value[0]?.id || ''
+})
 
 const deviceSidebarItems = computed(() => {
   return [
@@ -527,6 +535,37 @@ async function refreshAll() {
   await fetchMessagesAndThread()
 }
 
+function scheduleIMSRefreshPolls() {
+  for (const delayMs of [3000, 8000, 15000, 30000]) {
+    window.setTimeout(() => {
+      void fetchMessagesAndThread(true)
+    }, delayMs)
+  }
+}
+
+async function refreshIMS() {
+  const deviceId = imsRefreshDeviceId.value
+  if (!deviceId) {
+    ElMessage.warning('暂无可用设备')
+    return
+  }
+  if (refreshingIMS.value) return
+  refreshingIMS.value = true
+  try {
+    const result = await devicesService.reconnectVoWiFi(deviceId)
+    if (!result.ok) throw new Error(result.error.message || '刷新 IMS 失败')
+    ElMessage.success('已刷新 IMS，会自动检查新短信')
+    await fetchDevices()
+    await fetchMessagesAndThread(true)
+    scheduleIMSRefreshPolls()
+  } catch (e: unknown) {
+    const err = toAppError(e)
+    ElMessage.error('刷新 IMS 失败：' + (err.message || '未知错误'))
+  } finally {
+    refreshingIMS.value = false
+  }
+}
+
 async function pollRefresh() {
   if (loading.value || threadLoading.value || loadingHistoryMore.value) return
   try {
@@ -723,6 +762,10 @@ async function confirmDeleteThread(thread: SmsThread) {
       <template #actions>
         <div class="flex items-center gap-2">
           <RefreshButton :loading="loading" @click="refreshAll" />
+          <el-button :loading="refreshingIMS" :disabled="!imsRefreshDeviceId" @click="refreshIMS" class="ui-glass-border !border-0">
+            <el-icon><ArrowSync24Regular /></el-icon>
+            刷新 IMS
+          </el-button>
           <el-button type="primary" @click="openSendModal" class="font-bold !border-0">
             <el-icon><Send24Regular /></el-icon>
             新建短信
