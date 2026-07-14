@@ -60,6 +60,40 @@ systemctl is-active mihomo
 
 监听器运行所需的 Python 包通常包括 `requests`、`PyYAML` 和 RTP/音频处理所需工具。默认功能是录音和实时播放，不启用 Vosk 识别时不需要导入 `vosk`；只有明确使用 `--asr-vosk` 时才需要安装 Vosk 模型。
 
+### Mihomo SOCKS5 前置代理
+
+本项目不附带机场订阅、代理节点或真实 Mihomo 配置。用户需要自行取得合法可用的机场订阅或节点，并在 WSL 中配置 Mihomo。VoHive 不直接读取机场节点；Mihomo 负责连接上游节点，再向 VoHive 提供本机 SOCKS5 出口。
+
+1. 将机场订阅转换或导出为 Mihomo/Clash Meta 支持的配置格式。节点协议、服务器、端口、密码和订阅地址只保存在自己的私有配置中。
+2. 将私有配置放到 Mihomo 服务实际使用的位置。常见位置是 `/etc/mihomo/config.yaml`，但应以 `systemctl cat mihomo` 中的 `ExecStart` 参数为准。
+3. 确保 Mihomo 在 WSL 本机开放 SOCKS5 端口。下面只是一段不含节点的端口示例：
+
+   ```yaml
+   socks-port: 7891
+   allow-lan: false
+   mode: rule
+   ```
+
+4. 在自己的 Mihomo 配置中选择目标代理节点或代理组，并让需要的流量通过该节点。不要把真实 `proxies`、`proxy-providers`、订阅 URL 或认证信息复制进本仓库。
+5. 重启并检查 Mihomo：
+
+   ```bash
+   sudo systemctl restart mihomo
+   systemctl is-active mihomo
+   ss -lntp | grep 7891
+   curl --socks5-hostname 127.0.0.1:7891 https://api.ipify.org
+   ```
+
+6. 将私有 `config/vohive-wsl.json` 中的 `proxy.socks5` 设置为 `127.0.0.1:7891`。这个字段只告诉启动脚本从哪个 SOCKS5 端口检查出口，不包含机场节点本身。
+
+如果使用其他 SOCKS5 端口，请同时修改 Mihomo 和 `proxy.socks5`。建议只监听回环地址，不要把未经认证的 SOCKS5 端口直接开放到局域网或公网。
+
+### 使用 AI Agent 协助安装
+
+本项目可以通过具备终端和文件操作能力的 AI Agent 协助安装、配置与排错，例如检查 WSL2、`usbipd-win`、systemd 服务、Mihomo SOCKS5 端口、VoHive 日志和 Windows 启动脚本。建议让 AI Agent 按本文步骤逐项执行并在每一步输出检查结果，不要一次性运行来源不明的高权限命令。
+
+向 AI Agent 提供信息时，应隐藏机场订阅 URL、节点密码、QQ Bot 密钥、OpenID、邮箱凭证和运营商账户信息。真实 `config/vohive-wsl.json`、Mihomo 配置、日志与录音默认只保存在本机，不应上传到公开仓库或直接粘贴到公共对话中。
+
 ### 模块连接
 
 1. 关闭会占用 EC20 USB 设备的其他虚拟机或工具。
