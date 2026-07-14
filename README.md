@@ -1,4 +1,10 @@
-# VoHive
+# 基于 Windows WSL 运行的 VOHIVE 项目，适用于大疆第一代模块，移远 EC20
+
+> VoHive Windows/WSL 集成与 Quectel EC20 部署说明
+
+本仓库包含一个面向 Windows 11 + WSL2 + Quectel EC20 的部署辅助包，提供 USB 转发、VoHive/Mihomo 启动、局域网管理开关、通话监听、QQ Bot DTMF、WAV 录音和 Windows 实时播放入口。
+
+详细安装和使用说明见 [`deploy/windows-wsl-ec20/README.md`](deploy/windows-wsl-ec20/README.md)。公开仓库只包含配置模板；代理密码、QQ Bot 密钥、OpenID、VoHive 密码、日志和录音必须保留在本机。
 
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/License-PolyForm--Noncommercial--1.0.0-blue.svg)](https://polyformproject.org/licenses/noncommercial/1.0.0)
 [![Go](https://img.shields.io/badge/Go-1.26%2B-00ADD8?logo=go)](go.mod)

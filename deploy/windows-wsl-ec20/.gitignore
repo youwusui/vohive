@@ -1,0 +1,6 @@
+config/vohive-wsl.json
+*.log
+*.pyc
+__pycache__/
+logs/
+recordings/

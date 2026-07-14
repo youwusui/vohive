@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "distro": "Ubuntu-24.04",
+  "listen_port": 7575,
+  "live_tcp_port": 19090,
+  "usbipd_path": "C:\\Program Files\\usbipd-win\\usbipd.exe",
+  "module_match_regex": "2c7c:0125|Baiwang|Quectel|EC20|EC25|QDC507",
+  "expected_vohive_sha256": "",
+  "proxy": {
+    "socks5": "127.0.0.1:7891",
+    "expected_country_code": "GB",
+    "expected_ip_regex": ""
+  },
+  "epdg_ip": "",
+  "vohive": {
+    "root": "/opt/vohive",
+    "log_dir": "/opt/vohive/logs",
+    "rtp_dir": "/opt/vohive/rtp-probe",
+    "python": "/opt/vohive/asr-venv/bin/python",
+    "api_username": "admin",
+    "api_password": ""
+  },
+  "listener": {
+    "default_duration": 70,
+    "duration_padding": 8,
+    "record_root": "%USERPROFILE%\\VoHive-Recordings",
+    "ffplay_candidates": [
+      "ffplay.exe",
+      "C:\\ffmpeg\\bin\\ffplay.exe",
+      "C:\\Program Files\\ffmpeg\\bin\\ffplay.exe"
+    ]
+  }
+}
