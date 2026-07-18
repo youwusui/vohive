@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --canvas: #f4f6f8;
+      --surface: #ffffff;
+      --line: #dce3ea;
+      --soft-line: #edf0f3;
+      --ink: #172033;
+      --muted: #687587;
+      --teal: #0b6b61;
+      --teal-hover: #07564e;
+      --blue: #2d6398;
+      --orange: #aa5a19;
+      --purple: #74419a;
+      --good: #087443;
+      --warn: #a16207;
+      --danger: #b42318;
+      --focus: #2563eb;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    button, input, select, textarea { font: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    main { max-width: 1240px; margin: 0 auto; padding: 34px 40px 44px; }
+    .eyebrow { color: var(--teal); font-size: 12px; font-weight: 700; }
+    h1 { margin: 7px 0 5px; font-size: 30px; letter-spacing: 0; }
+    .lede { margin: 0; color: var(--muted); font-size: 15px; }
+    .topline {
+      display: flex; align-items: end; justify-content: space-between; gap: 24px;
+      padding-bottom: 26px; border-bottom: 1px solid var(--line);
+    }
+    .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+    button {
+      border: 0; border-radius: 6px; font-weight: 650; cursor: pointer;
+      transition: background .15s ease, color .15s ease, border-color .15s ease, opacity .15s ease;
+    }
+    button:disabled { opacity: .48; cursor: default; }
+    .primary-button { padding: 11px 18px; background: var(--teal); color: white; white-space: nowrap; }
+    .primary-button:hover { background: var(--teal-hover); }
+    .secondary-button { padding: 10px 15px; color: #334155; background: white; border: 1px solid #cbd5e1; }
+    .secondary-button:hover { background: #f8fafc; }
+    .danger-button { padding: 9px 12px; color: var(--danger); background: white; border: 1px solid #f1b5b0; }
+
+    .health {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin: 26px 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+      overflow: hidden;
+    }
+    .health-item { min-width: 0; padding: 17px 20px; border-right: 1px solid var(--line); }
+    .health-item:last-child { border-right: 0; }
+    .health-label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 5px; }
+    .health-value { display: block; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+    .health-value.ready { color: var(--good); }
+    .health-value.wait { color: var(--warn); }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1.58fr) minmax(300px, .78fr); gap: 24px; }
+    .section { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .section-title { padding: 17px 20px; font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--line); }
+    .command-row {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; align-items: center;
+      padding: 18px 20px; border-bottom: 1px solid var(--soft-line);
+    }
+    .command-row:last-child { border-bottom: 0; }
+    .command-title { font-weight: 700; margin-bottom: 3px; }
+    .command-copy { color: var(--muted); font-size: 13px; }
+    .command-button { min-width: 142px; padding: 9px 12px; color: white; }
+    .start { background: var(--teal); }
+    .lan { background: var(--blue); }
+    .reset { background: var(--orange); }
+    .command-button:hover { filter: brightness(.92); }
+    .listener { margin-top: 24px; }
+    .mode-grid { display: grid; grid-template-columns: 1fr 1fr; }
+    .mode { padding: 20px; border-right: 1px solid var(--line); }
+    .mode:last-child { border-right: 0; }
+    .mode h3 { margin: 0 0 5px; font-size: 15px; }
+    .mode p { margin: 0 0 16px; color: var(--muted); font-size: 13px; min-height: 38px; }
+    .mode-button { width: 100%; padding: 10px 12px; color: white; }
+    .silent { background: #46566d; }
+    .live { background: var(--purple); }
+    .activity { min-height: 100%; display: flex; flex-direction: column; }
+    .activity-list { list-style: none; padding: 7px 20px 16px; margin: 0; }
+    .activity-list li { position: relative; padding: 11px 0 11px 17px; border-bottom: 1px solid var(--soft-line); color: #405066; }
+    .activity-list li:last-child { border-bottom: 0; }
+    .activity-list li::before { content: ""; position: absolute; left: 0; top: 18px; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); }
+    .backend-link { margin: auto 20px 20px; text-align: left; padding: 10px 0; color: var(--blue); background: transparent; }
+    .backend-link:hover { text-decoration: underline; }
+
+    .proxy-summary { margin-bottom: 18px; }
+    .proxy-settings {
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+      padding: 17px 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    }
+    .setting-title { font-weight: 700; margin-bottom: 3px; }
+    .setting-copy { color: var(--muted); font-size: 13px; }
+    .switch { position: relative; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; white-space: nowrap; }
+    .switch input { position: absolute; opacity: 0; pointer-events: none; }
+    .switch-track { width: 42px; height: 24px; border-radius: 12px; background: #94a3b8; position: relative; transition: background .15s ease; }
+    .switch-track::after { content: ""; position: absolute; width: 18px; height: 18px; top: 3px; left: 3px; border-radius: 50%; background: white; transition: transform .15s ease; }
+    .switch input:checked + .switch-track { background: var(--teal); }
+    .switch input:checked + .switch-track::after { transform: translateX(18px); }
+    .switch input:focus-visible + .switch-track { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+    .notice { min-height: 20px; margin: 12px 2px 16px; color: #405066; }
+    .proxy-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .proxy-table th { padding: 12px 14px; text-align: left; color: var(--muted); background: #f8fafc; font-size: 12px; font-weight: 650; border-bottom: 1px solid var(--line); }
+    .proxy-table td { padding: 14px; border-bottom: 1px solid var(--soft-line); vertical-align: middle; overflow-wrap: anywhere; }
+    .proxy-table tr:last-child td { border-bottom: 0; }
+    .proxy-table tr.current { background: #f1faf8; }
+    .proxy-name { font-weight: 700; }
+    .proxy-meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .protocol { color: #334155; text-transform: lowercase; }
+    .status-tag { display: inline-flex; align-items: center; gap: 7px; color: var(--good); font-weight: 650; }
+    .status-tag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .muted-status { color: var(--muted); }
+    .row-actions { display: flex; gap: 7px; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
+    .test-control { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+    .latency-value { min-width: 58px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .latency-value.ok { color: var(--good); font-weight: 650; }
+    .latency-value.testing { color: var(--blue); }
+    .latency-value.failed { color: var(--danger); }
+    .small-button { padding: 7px 10px; color: #334155; background: white; border: 1px solid #cbd5e1; font-size: 12px; }
+    .small-button:hover { background: #f8fafc; }
+    .small-button.delete { color: var(--danger); border-color: #efc0bc; }
+    .empty-state { padding: 44px 20px; text-align: center; color: var(--muted); }
+
+    dialog { width: min(620px, calc(100vw - 40px)); border: 1px solid var(--line); border-radius: 8px; padding: 0; color: var(--ink); box-shadow: 0 18px 60px rgba(15, 23, 42, .22); }
+    dialog::backdrop { background: rgba(15, 23, 42, .42); }
+    .dialog-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+    .dialog-head h2 { margin: 0; font-size: 17px; }
+    .close-button { width: 32px; height: 32px; padding: 0; font-size: 20px; line-height: 1; color: var(--muted); background: transparent; }
+    .dialog-body { padding: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px 18px; }
+    .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 13px; font-weight: 650; }
+    .field input, .field select, .field textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 9px 10px; color: var(--ink); background: white; }
+    .field textarea { min-height: 230px; resize: vertical; font-family: Consolas, monospace; font-size: 13px; }
+    .check-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding-top: 7px; }
+    .check-row label { display: inline-flex; align-items: center; gap: 7px; font-weight: 500; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--line); background: #f8fafc; }
+    .hint { color: var(--muted); font-size: 12px; }
+
+    @media (max-width: 820px) {
+      main { padding: 24px 20px; }
+      .topline, .proxy-settings { align-items: flex-start; }
+      .layout { display: block; }
+      .activity { margin-top: 24px; }
+    }
+    @media (max-width: 620px) {
+      .topline, .proxy-settings { display: block; }
+      .toolbar { margin-top: 18px; justify-content: flex-start; }
+      .health { grid-template-columns: 1fr; }
+      .health-item { border-right: 0; border-bottom: 1px solid var(--line); }
+      .health-item:last-child { border-bottom: 0; }
+      .mode-grid, .form-grid { grid-template-columns: 1fr; }
+      .mode { border-right: 0; border-bottom: 1px solid var(--line); }
+      .field.full { grid-column: auto; }
+      .proxy-settings .switch { margin-top: 16px; }
+      .proxy-table col.protocol, .proxy-table th.protocol, .proxy-table td.protocol,
+      .proxy-table col.server, .proxy-table th.server, .proxy-table td.server { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div id="control-view">
+      <section class="topline">
+        <div>
+          <div class="eyebrow">WSL · EC20 · VOWIFI</div>
+          <h1>控制中心</h1>
+          <p class="lede">静默管理 WSL、前置代理、VoHive 和通话监听。</p>
+        </div>
+        <div class="toolbar">
+          <button class="secondary-button" data-action="proxy-page">代理管理</button>
+          <button class="primary-button" data-action="start">启动核心服务</button>
+        </div>
+      </section>
+
+      <section class="health" aria-label="服务状态">
+        <div class="health-item"><span class="health-label">核心服务</span><span id="service-status" class="health-value wait">正在检查</span></div>
+        <div class="health-item"><span class="health-label">局域网访问</span><span id="lan-status" class="health-value">正在检查</span></div>
+        <div class="health-item"><span class="health-label">通话监听</span><span id="listener-status" class="health-value">未启动</span></div>
+      </section>
+
+      <section class="layout">
+        <div>
+          <section class="section">
+            <div class="section-title">系统操作</div>
+            <div class="command-row">
+              <div><div class="command-title">启动 VoHive</div><div class="command-copy">启动 WSL 保持进程、Mihomo 和 VoHive，并等待服务可用。</div></div>
+              <button class="command-button start" data-action="start">启动服务</button>
+            </div>
+            <div class="command-row">
+              <div><div class="command-title">局域网访问</div><div class="command-copy">允许或关闭局域网内设备对 VoHive 后台的访问。</div></div>
+              <button id="lan-action" class="command-button lan" data-action="lan">正在检查</button>
+            </div>
+            <div class="command-row">
+              <div><div class="command-title">重置 VoHive 设备检测</div><div class="command-copy">重新挂载 EC20，并让 VoHive 重新扫描模块。</div></div>
+              <button class="command-button reset" data-action="reset">重置设备</button>
+            </div>
+          </section>
+
+          <section class="section listener">
+            <div class="section-title">通话监听</div>
+            <div class="mode-grid">
+              <div class="mode">
+                <h3>只通话监听</h3>
+                <p>后台接收通话、录音和 QQ Bot 按键，不播放电脑声音。</p>
+                <button class="mode-button silent" data-action="listen-silent">开启静默监听</button>
+              </div>
+              <div class="mode">
+                <h3>播放声音并监听</h3>
+                <p>接收通话并将实时语音播放到 Windows 默认输出设备。</p>
+                <button class="mode-button live" data-action="listen-live">开启实时播放</button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="section activity">
+          <div class="section-title">当前进度</div>
+          <ul id="activity-list" class="activity-list"><li>正在读取服务状态</li></ul>
+          <button class="backend-link" data-action="backend">打开 VoHive 后台</button>
+        </aside>
+      </section>
+    </div>
+
+    <div id="proxy-view" hidden>
+      <section class="topline">
+        <div>
+          <div class="eyebrow">MIHOMO · SOCKS5 · VOWIFI</div>
+          <h1>代理管理</h1>
+          <p class="lede">节点保存在本机 WSL，并统一输出到 SOCKS5 端口。</p>
+        </div>
+        <div class="toolbar">
+          <button class="secondary-button" data-action="proxy-refresh">刷新</button>
+          <button id="test-all-proxies" class="secondary-button" data-action="proxy-test-all">全部测速</button>
+          <button class="secondary-button" data-action="import-open">导入 YAML</button>
+          <button class="primary-button" data-action="add-node">添加节点</button>
+        </div>
+      </section>
+
+      <section class="health proxy-summary" aria-label="代理状态">
+        <div class="health-item"><span class="health-label">运行模式</span><span id="proxy-mode" class="health-value">手动切换</span></div>
+        <div class="health-item"><span class="health-label">当前节点</span><span id="current-proxy" class="health-value">未选择</span></div>
+        <div class="health-item"><span class="health-label">SOCKS5 输出</span><span id="socks-endpoint" class="health-value ready">127.0.0.1:7891</span></div>
+      </section>
+
+      <section class="proxy-settings">
+        <div>
+          <div class="setting-title">VoWiFi 自动切换</div>
+          <div class="setting-copy" id="proxy-health">正在读取 VoWiFi 状态</div>
+        </div>
+        <label class="switch">
+          <input id="auto-switch" type="checkbox" aria-label="VoWiFi 自动切换">
+          <span class="switch-track" aria-hidden="true"></span>
+          <span id="auto-label">关闭</span>
+        </label>
+      </section>
+
+      <div id="proxy-notice" class="notice" role="status"></div>
+
+      <section class="section">
+        <div class="section-title">节点列表</div>
+        <div id="proxy-table-wrap">
+          <table class="proxy-table">
+            <colgroup><col style="width:20%"><col class="protocol" style="width:10%"><col class="server" style="width:22%"><col style="width:12%"><col style="width:36%"></colgroup>
+            <thead><tr><th>名称</th><th class="protocol">协议</th><th class="server">服务器</th><th>状态</th><th></th></tr></thead>
+            <tbody id="proxy-rows"></tbody>
+          </table>
+        </div>
+        <div id="proxy-empty" class="empty-state" hidden>尚未添加节点</div>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="node-dialog">
+    <form id="node-form" method="dialog">
+      <div class="dialog-head"><h2 id="node-dialog-title">添加节点</h2><button class="close-button" type="button" data-close="node-dialog" title="关闭">×</button></div>
+      <div class="dialog-body">
+        <input id="node-original-name" type="hidden">
+        <div class="form-grid">
+          <div class="field"><label for="node-name">节点名称</label><input id="node-name" required autocomplete="off"></div>
+          <div class="field"><label for="node-type">协议类型</label><input id="node-type" list="protocol-types" required autocomplete="off" placeholder="trojan"></div>
+          <div class="field full"><label for="node-server">服务器地址</label><input id="node-server" required autocomplete="off"></div>
+          <div class="field"><label for="node-port">端口</label><input id="node-port" type="number" min="1" max="65535" required></div>
+          <div class="field"><label for="node-credential">密码或 UUID</label><input id="node-credential" type="password" autocomplete="new-password" placeholder="编辑时留空表示不修改"></div>
+          <div class="field"><label for="node-username">用户名</label><input id="node-username" autocomplete="off"></div>
+          <div class="field"><label for="node-sni">SNI</label><input id="node-sni" autocomplete="off"></div>
+          <div class="field"><label for="node-cipher">加密方式</label><input id="node-cipher" autocomplete="off" placeholder="仅 SS 等协议需要"></div>
+          <div class="field full check-row">
+            <label><input id="node-udp" type="checkbox" checked> UDP</label>
+            <label><input id="node-skip-cert" type="checkbox"> 跳过证书验证</label>
+          </div>
+        </div>
+        <datalist id="protocol-types"><option value="trojan"><option value="anytls"><option value="ss"><option value="socks5"><option value="http"><option value="vmess"><option value="vless"><option value="hysteria2"></datalist>
+      </div>
+      <div class="dialog-actions"><button class="secondary-button" type="button" data-close="node-dialog">取消</button><button class="primary-button" type="submit">保存节点</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="import-dialog">
+    <form id="import-form" method="dialog">
+      <div class="dialog-head"><h2>导入 YAML</h2><button class="close-button" type="button" data-close="import-dialog" title="关闭">×</button></div>
+      <div class="dialog-body">
+        <div class="field full">
+          <label for="import-yaml">Mihomo / Clash 节点</label>
+          <textarea id="import-yaml" required spellcheck="false" placeholder="proxies:&#10;  - name: 节点名称&#10;    type: trojan&#10;    server: example.com&#10;    port: 443&#10;    password: ..."></textarea>
+          <div class="hint">可以导入单个节点、节点数组或带 proxies 字段的配置；同名节点会被替换。</div>
+        </div>
+      </div>
+      <div class="dialog-actions"><button class="secondary-button" type="button" data-close="import-dialog">取消</button><button class="primary-button" type="submit">导入节点</button></div>
+    </form>
+  </dialog>
+
+  <script>
+    const state = {
+      online: false, busy: false, lanEnabled: false, listenerMode: '未启动', activities: [], page: 'control',
+      proxyMode: 'manual', currentProxy: null, proxyHealth: '正在读取代理配置', proxyBusy: false, proxyTestBusy: false,
+      proxies: [], socksEndpoint: '127.0.0.1:7891', proxyNotice: ''
+    };
+    const send = (action, payload = {}) => window.chrome.webview.postMessage({ action, ...payload });
+    const byId = id => document.getElementById(id);
+
+    document.addEventListener('click', event => {
+      const close = event.target.closest('[data-close]');
+      if (close) { byId(close.dataset.close).close(); return; }
+      const button = event.target.closest('[data-action]');
+      if (!button) return;
+      const action = button.dataset.action;
+      if (action === 'add-node') { openNodeDialog(); return; }
+      if (action === 'import-open') { byId('import-dialog').showModal(); return; }
+      send(action);
+    });
+
+    byId('auto-switch').addEventListener('change', event => send('proxy-auto', { enabled: event.target.checked }));
+    byId('node-form').addEventListener('submit', event => {
+      event.preventDefault();
+      send('proxy-save', { node: {
+        originalName: byId('node-original-name').value,
+        name: byId('node-name').value,
+        type: byId('node-type').value,
+        server: byId('node-server').value,
+        port: Number(byId('node-port').value),
+        credential: byId('node-credential').value,
+        username: byId('node-username').value,
+        sni: byId('node-sni').value,
+        cipher: byId('node-cipher').value,
+        udp: byId('node-udp').checked,
+        skipCertVerify: byId('node-skip-cert').checked
+      }});
+      byId('node-dialog').close();
+    });
+    byId('import-form').addEventListener('submit', event => {
+      event.preventDefault();
+      send('proxy-import', { yaml: byId('import-yaml').value });
+      byId('import-dialog').close();
+      byId('import-yaml').value = '';
+    });
+
+    function openNodeDialog(proxy = null) {
+      byId('node-dialog-title').textContent = proxy ? '编辑节点' : '添加节点';
+      byId('node-original-name').value = proxy?.Name || '';
+      byId('node-name').value = proxy?.Name || '';
+      byId('node-type').value = proxy?.Type || 'trojan';
+      byId('node-server').value = proxy?.Server || '';
+      byId('node-port').value = proxy?.Port || 443;
+      byId('node-credential').value = '';
+      byId('node-username').value = proxy?.Username || '';
+      byId('node-sni').value = proxy?.Sni || '';
+      byId('node-cipher').value = proxy?.Cipher || '';
+      byId('node-udp').checked = proxy?.Udp ?? true;
+      byId('node-skip-cert').checked = proxy?.SkipCertVerify ?? false;
+      byId('node-dialog').showModal();
+    }
+
+    function makeButton(text, className, handler, disabled = false) {
+      const button = document.createElement('button');
+      button.type = 'button'; button.textContent = text; button.className = className; button.disabled = disabled;
+      button.addEventListener('click', handler);
+      return button;
+    }
+
+    function renderProxyRows() {
+      const rows = byId('proxy-rows');
+      rows.replaceChildren();
+      const proxies = Array.isArray(state.proxies) ? state.proxies : [];
+      byId('proxy-table-wrap').hidden = proxies.length === 0;
+      byId('proxy-empty').hidden = proxies.length !== 0;
+      proxies.forEach(proxy => {
+        const current = proxy.Name === state.currentProxy;
+        const row = document.createElement('tr');
+        if (current) row.className = 'current';
+
+        const nameCell = document.createElement('td');
+        const name = document.createElement('div'); name.className = 'proxy-name'; name.textContent = proxy.Name;
+        const meta = document.createElement('div'); meta.className = 'proxy-meta'; meta.textContent = proxy.HasCredential ? '凭据已保存' : '无凭据';
+        nameCell.append(name, meta);
+
+        const protocol = document.createElement('td'); protocol.className = 'protocol'; protocol.textContent = proxy.Type;
+        const server = document.createElement('td'); server.className = 'server'; server.textContent = `${proxy.Server}:${proxy.Port}`;
+        const status = document.createElement('td');
+        const statusText = document.createElement('span'); statusText.className = current ? 'status-tag' : 'muted-status'; statusText.textContent = current ? '当前使用' : '待命'; status.append(statusText);
+        const actions = document.createElement('td'); actions.className = 'row-actions';
+        const testControl = document.createElement('span'); testControl.className = 'test-control';
+        const latency = document.createElement('span');
+        const latencyState = proxy.LatencyState || 'untested';
+        latency.className = `latency-value ${latencyState}`;
+        latency.textContent = latencyState === 'testing'
+          ? '测速中'
+          : latencyState === 'ok' && Number.isFinite(proxy.LatencyMs)
+            ? `${proxy.LatencyMs} ms`
+            : latencyState === 'failed' ? '失败' : '--';
+        const controlsDisabled = state.busy || state.proxyBusy;
+        const testDisabled = controlsDisabled || state.proxyTestBusy;
+        testControl.append(
+          makeButton('测速', 'small-button', () => send('proxy-test-one', { name: proxy.Name }), testDisabled),
+          latency
+        );
+        actions.append(
+          testControl,
+          makeButton('切换', 'small-button', () => send('proxy-switch', { name: proxy.Name }), current || controlsDisabled),
+          makeButton('编辑', 'small-button', () => openNodeDialog(proxy), controlsDisabled),
+          makeButton('删除', 'small-button delete', () => { if (confirm(`删除节点“${proxy.Name}”？`)) send('proxy-delete', { name: proxy.Name }); }, controlsDisabled)
+        );
+        row.append(nameCell, protocol, server, status, actions);
+        rows.append(row);
+      });
+    }
+
+    function render() {
+      byId('control-view').hidden = state.page !== 'control';
+      byId('proxy-view').hidden = state.page !== 'proxy';
+      const service = byId('service-status');
+      service.textContent = state.online ? '服务可用' : '正在等待';
+      service.className = `health-value ${state.online ? 'ready' : 'wait'}`;
+      const lan = byId('lan-status');
+      lan.textContent = state.lanEnabled ? '已开启' : '已关闭';
+      lan.className = `health-value ${state.lanEnabled ? 'ready' : ''}`;
+      byId('listener-status').textContent = state.listenerMode;
+      byId('lan-action').textContent = state.lanEnabled ? '关闭局域网访问' : '开启局域网访问';
+
+      const list = byId('activity-list');
+      list.replaceChildren();
+      const entries = state.activities.length ? state.activities : ['正在读取服务状态'];
+      entries.forEach(entry => { const item = document.createElement('li'); item.textContent = entry; list.append(item); });
+
+      byId('proxy-mode').textContent = state.proxyMode === 'auto' ? '自动切换' : '手动切换';
+      byId('current-proxy').textContent = state.currentProxy || '未选择';
+      byId('socks-endpoint').textContent = state.socksEndpoint;
+      byId('proxy-health').textContent = state.proxyHealth;
+      byId('proxy-notice').textContent = state.proxyNotice || '';
+      byId('auto-switch').checked = state.proxyMode === 'auto';
+      byId('auto-label').textContent = state.proxyMode === 'auto' ? '开启' : '关闭';
+      byId('test-all-proxies').textContent = state.proxyTestBusy ? '测速中' : '全部测速';
+      renderProxyRows();
+
+      const disabled = state.busy || state.proxyBusy;
+      document.querySelectorAll('[data-action], dialog button, dialog input, dialog textarea').forEach(element => {
+        if (!element.matches('[data-close]')) element.disabled = disabled;
+      });
+      byId('auto-switch').disabled = disabled;
+      byId('test-all-proxies').disabled = disabled || state.proxyTestBusy || state.proxies.length === 0;
+    }
+
+    window.chrome.webview.addEventListener('message', event => {
+      if (event.data?.type === 'state') {
+        Object.assign(state, event.data.state);
+        render();
+      }
+    });
+    render();
+  </script>
+</body>
+</html>

@@ -4,6 +4,8 @@
 
 本目录只包含可公开发布的脚本和配置模板。真实的代理节点密码、QQ Bot 密钥、OpenID、VoHive 管理密码和本机日志不应上传到 GitHub。
 
+除脚本入口外，本目录还包含 [`control-center`](control-center/README.md) Windows 控制台源码。控制台提供系统托盘常驻、静默启动、VoHive 后台嵌入、局域网访问开关、设备检测重置、通话监听模式和 Mihomo 节点管理。编译好的单文件 EXE 从 GitHub Releases 下载。
+
 ## 功能入口
 
 | 文件 | 用途 |
@@ -15,6 +17,7 @@
 | `开启 VoHive 局域网访问.cmd` | 将 VoHive `7575` 映射到当前局域网 IPv4，并创建仅允许 LocalSubnet 的 Windows 防火墙规则。 |
 | `关闭 VoHive 局域网访问.cmd` | 删除局域网映射和对应防火墙规则，保留本机 `http://localhost:7575`。 |
 | `重置 VoHive 设备检测.cmd` | 重新 detach/bind/attach EC20，再等待 `/dev/cdc-wdm0` 和 `/dev/ttyUSB*` 出现，最后重启 VoHive。 |
+| `control-center/` | Windows 控制台源码；将上述入口整合为可常驻系统托盘的图形界面。 |
 
 ## 运行架构
 

@@ -2,9 +2,9 @@
 
 > VoHive Windows/WSL 集成与 Quectel EC20 部署说明
 
-本仓库包含一个面向 Windows 11 + WSL2 + Quectel EC20 的部署辅助包，提供 USB 转发、VoHive/Mihomo 启动、局域网管理开关、通话监听、QQ Bot DTMF、WAV 录音和 Windows 实时播放入口。
+本仓库包含一个面向 Windows 11 + WSL2 + Quectel EC20 的部署辅助包，提供 USB 转发、VoHive/Mihomo 启动、局域网管理开关、通话监听、QQ Bot DTMF、WAV 录音和 Windows 实时播放入口。另附一个可常驻系统托盘的 Windows 控制台，用于静默启动环境、嵌入 VoHive 后台和管理 Mihomo 节点。
 
-详细安装和使用说明见 [`deploy/windows-wsl-ec20/README.md`](deploy/windows-wsl-ec20/README.md)。公开仓库只包含配置模板；代理密码、QQ Bot 密钥、OpenID、VoHive 密码、日志和录音必须保留在本机。
+详细安装和使用说明见 [`deploy/windows-wsl-ec20/README.md`](deploy/windows-wsl-ec20/README.md)，Windows 控制台源码及说明见 [`deploy/windows-wsl-ec20/control-center/README.md`](deploy/windows-wsl-ec20/control-center/README.md)。可执行文件从 GitHub Releases 下载。公开仓库只包含配置模板；代理密码、QQ Bot 密钥、OpenID、VoHive 密码、日志和录音必须保留在本机。
 
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/License-PolyForm--Noncommercial--1.0.0-blue.svg)](https://polyformproject.org/licenses/noncommercial/1.0.0)
 [![Go](https://img.shields.io/badge/Go-1.26%2B-00ADD8?logo=go)](go.mod)
