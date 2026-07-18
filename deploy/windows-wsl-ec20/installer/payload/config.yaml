@@ -1,0 +1,38 @@
+server:
+  port: "7575"
+  debug: false
+web:
+  username: admin
+  password: admin
+devices:
+  - id: eSIM
+    name: eSIM
+    proxy_port: 7891
+    device_backend: qmi
+    esim_transport: qmi
+    qmi_use_proxy: true
+    mbim_transport: auto
+    baud_rate: 115200
+    data_bits: 8
+    stop_bits: 1
+    parity: N
+proxy:
+  instances: []
+vowifi:
+  enabled: false
+  device_id: eSIM
+  mode: vowifi
+telegram:
+  enabled: false
+feishu:
+  enabled: false
+qq:
+  enabled: false
+webhook:
+  enabled: false
+bark:
+  enabled: false
+email:
+  enabled: false
+pushplus:
+  enabled: false

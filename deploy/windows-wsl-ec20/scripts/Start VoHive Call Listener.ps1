@@ -41,6 +41,8 @@ $wslIp = ((Wsl "hostname -I | cut -d' ' -f1") -join '').Trim()
 if (-not $wslIp) { throw "Cannot determine WSL IP" }
 $liveUrl = "tcp://" + $wslIp + ":" + $LiveTcpPort
 function Find-Ffplay {
+  $bundled = Join-Path $toolRoot "ffmpeg\ffplay.exe"
+  if (Test-Path -LiteralPath $bundled) { return $bundled }
   $cmd = Get-Command ffplay.exe -ErrorAction SilentlyContinue
   if ($cmd -and $cmd.Source) { return $cmd.Source }
   foreach ($candidate in @($cfg.listener.ffplay_candidates)) { $p = Expand-VoHiveValue ([string]$candidate); if ($p -and (Test-Path -LiteralPath $p)) { return $p } }

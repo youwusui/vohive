@@ -367,7 +367,7 @@ public partial class Form1
         var timeoutSeconds = Math.Min(900, 20 + (int)Math.Ceiling(names.Count / 4d) * 65);
         var result = await RunProcessAsync(
             "wsl.exe",
-            ["-d", WslDistro, "--", "python3", "-c", probeScript],
+            ["-d", _wslDistro, "--", "python3", "-c", probeScript],
             TimeSpan.FromSeconds(timeoutSeconds),
             payload);
         if (result.ExitCode != 0) throw new InvalidOperationException("Mihomo 测速接口没有响应");
@@ -510,7 +510,7 @@ public partial class Form1
             await Task.Delay(1500);
             var result = await RunProcessAsync(
                 "wsl.exe",
-                ["-d", WslDistro, "--", "curl", "-sS", "-o", "/dev/null", "-w", "%{http_code}",
+                ["-d", _wslDistro, "--", "curl", "-sS", "-o", "/dev/null", "-w", "%{http_code}",
                     "--connect-timeout", "6", "--max-time", "12", "--socks5-hostname", "127.0.0.1:7891",
                     "https://www.gstatic.com/generate_204"],
                 TimeSpan.FromSeconds(16));
@@ -564,7 +564,7 @@ public partial class Form1
     {
         var result = await RunProcessAsync(
             "wsl.exe",
-            ["-d", WslDistro, "-u", "root", "--", "cat", MihomoConfigPath],
+            ["-d", _wslDistro, "-u", "root", "--", "cat", MihomoConfigPath],
             TimeSpan.FromSeconds(10));
         if (result.ExitCode != 0)
         {
@@ -667,12 +667,12 @@ public partial class Form1
         }
     }
 
-    private static Task<ProcessResult> RunWslRootAsync(
+    private Task<ProcessResult> RunWslRootAsync(
         IEnumerable<string> command,
         TimeSpan timeout,
         string? standardInput = null)
     {
-        var arguments = new List<string> { "-d", WslDistro, "-u", "root", "--" };
+        var arguments = new List<string> { "-d", _wslDistro, "-u", "root", "--" };
         arguments.AddRange(command);
         return RunProcessAsync("wsl.exe", arguments, timeout, standardInput);
     }

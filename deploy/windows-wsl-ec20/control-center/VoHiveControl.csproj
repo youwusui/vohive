@@ -8,8 +8,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\vohive.ico</ApplicationIcon>
-    <AssemblyName>VoHive 控制台</AssemblyName>
-    <Version>1.0.0</Version>
+    <AssemblyName>VoHiveControlCenter</AssemblyName>
+    <RootNamespace>VoHiveControl</RootNamespace>
+    <Version>1.1.0</Version>
+    <Product>VOHIVE for Windows</Product>
+    <AssemblyTitle>VOHIVE for Windows</AssemblyTitle>
+    <Description>Windows 11 control center and WSL2 deployment for VoHive on Quectel EC20.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +23,19 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\Dashboard.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\scripts\**\*">
+      <Link>Tools\scripts\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\config\vohive-wsl.example.json">
+      <Link>Tools\config\vohive-wsl.example.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

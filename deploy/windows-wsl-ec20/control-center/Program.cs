@@ -8,7 +8,7 @@ internal static class Program
         using var instanceLock = new Mutex(true, "Local\\VoHiveControlSingleton", out var isFirstInstance);
         if (!isFirstInstance)
         {
-            MessageBox.Show("VoHive 控制台已经在运行。", "VoHive 控制台", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("VOHIVE for Windows已经在运行。", "VOHIVE for Windows", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
 

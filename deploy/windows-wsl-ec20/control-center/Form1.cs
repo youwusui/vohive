@@ -11,13 +11,11 @@ namespace VoHiveControl;
 
 public partial class Form1 : Form
 {
-    private const string WslDistro = "Ubuntu-24.04";
+    private readonly string _wslDistro = InstallLayout.ResolveDistroName();
     private const string BackendHost = "vohive-wsl";
     private const int BackendPort = 7575;
 
-    private readonly string _toolRoot = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-        "01_工具入口", "VoHive WSL 工具");
+    private readonly string _toolRoot = InstallLayout.ResolveToolScriptRoot();
     private readonly HttpClient _http = new(new SocketsHttpHandler { UseProxy = false })
     {
         Timeout = TimeSpan.FromSeconds(4)
@@ -100,7 +98,7 @@ public partial class Form1 : Form
         {
             ContextMenuStrip = _trayMenu,
             Icon = _trayOwnedIcon ?? SystemIcons.Application,
-            Text = "VoHive 控制台 - 后台运行中",
+            Text = "VOHIVE for Windows - 后台运行中",
             Visible = true
         };
         _trayIcon.DoubleClick += (_, _) => RestoreFromTray();
@@ -141,7 +139,7 @@ public partial class Form1 : Form
 
     private void BuildShell()
     {
-        Text = "VoHive 控制台";
+        Text = "VOHIVE for Windows";
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(1080, 720);
         Size = new Size(1240, 800);
@@ -158,7 +156,7 @@ public partial class Form1 : Form
         var appName = new Label
         {
             AutoSize = true,
-            Text = "VoHive 控制台",
+            Text = "VOHIVE for Windows",
             Font = new Font("Microsoft YaHei UI", 15F, FontStyle.Bold),
             ForeColor = Color.White,
             Location = new Point(16, 18)
@@ -422,7 +420,7 @@ public partial class Form1 : Form
 
     private async Task StopListenerAsync()
     {
-        const string command = "Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'powershell.exe' -and $_.CommandLine -like '*Start VoHive Call Listener.ps1*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }; wsl.exe -d Ubuntu-24.04 -- bash -lc \"pkill -f '[v]ohive_call_asr_sidecar.py' 2>/dev/null || true\"";
+        var command = $"Get-CimInstance Win32_Process | Where-Object {{ $_.Name -eq 'powershell.exe' -and $_.CommandLine -like '*Start VoHive Call Listener.ps1*' }} | ForEach-Object {{ Stop-Process -Id $_.ProcessId -Force }}; wsl.exe -d '{_wslDistro.Replace("'", "''")}' -- bash -lc \"pkill -f '[v]ohive_call_asr_sidecar.py' 2>/dev/null || true\"";
         await RunPowerShellCommandAsync(command);
         await Task.Delay(500);
     }
@@ -529,7 +527,7 @@ public partial class Form1 : Form
 
         try
         {
-            var output = await RunProcessAsync("wsl.exe", $"-d {WslDistro} -- systemctl is-active vohive mihomo", TimeSpan.FromSeconds(5));
+            var output = await RunProcessAsync("wsl.exe", $"-d {_wslDistro} -- systemctl is-active vohive mihomo", TimeSpan.FromSeconds(5));
             if (!_isOnline && output.StandardOutput.Contains("active", StringComparison.OrdinalIgnoreCase))
             {
                 AddActivity("VoHive 正在等待后台页面响应");

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "distro": "Ubuntu-24.04",
+  "distro": "VoHive",
   "listen_port": 7575,
   "live_tcp_port": 19090,
   "usbipd_path": "C:\\Program Files\\usbipd-win\\usbipd.exe",
@@ -8,7 +8,7 @@
   "expected_vohive_sha256": "",
   "proxy": {
     "socks5": "127.0.0.1:7891",
-    "expected_country_code": "GB",
+    "expected_country_code": "",
     "expected_ip_regex": ""
   },
   "epdg_ip": "",
@@ -18,7 +18,7 @@
     "rtp_dir": "/opt/vohive/rtp-probe",
     "python": "/opt/vohive/asr-venv/bin/python",
     "api_username": "admin",
-    "api_password": ""
+    "api_password": "admin"
   },
   "listener": {
     "default_duration": 70,

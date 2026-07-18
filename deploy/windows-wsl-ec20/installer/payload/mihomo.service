@@ -1,0 +1,13 @@
+[Unit]
+Description=Mihomo upstream proxy service
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+WorkingDirectory=/opt/mihomo
+ExecStart=/opt/mihomo/mihomo -d /opt/mihomo
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=1048576
+[Install]
+WantedBy=multi-user.target
